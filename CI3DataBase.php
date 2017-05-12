@@ -4,6 +4,7 @@ use Exception, stdClass;
 
 class CI3DataBase
 {
+	const VERSION = '0.0.1-alpha.1';
 	protected static $self_instance;
 	protected $db_instance = array();
 	protected $dbutil_instance = array();
