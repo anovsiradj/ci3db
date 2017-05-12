@@ -1,0 +1,18 @@
+{
+    "name": "anovsiradj/ci3db",
+    "description": "Standalone CodeIgniter 3 Database",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "anovsiradj",
+            "email": "anov.siradj22@gmail.com"
+        }
+    ],
+    "autoload": {
+        "classmap": ["CI3DataBase.php", "class/"]
+    },
+    "require": {
+        "codeigniter/framework": "~3"
+    }
+}

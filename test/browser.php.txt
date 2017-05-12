@@ -1,0 +1,14 @@
+<?php
+header('Content-Type: text/plain');
+
+$ds = DIRECTORY_SEPARATOR;
+$cwd = realpath('./') . $ds;
+
+$file = isset($_GET['file']) ? $_GET['file'] : null;
+if ($file === null) die('Parameter [file] is Required.');
+$file = str_replace(array('/', '\\'), $ds, trim($file, '/\\'));
+
+$input = 'php ' . $cwd . $file;
+$output = exec($input);
+
+print_r($output);
