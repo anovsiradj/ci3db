@@ -6,14 +6,14 @@ without modifying anything.
 ### Usage
 
 ```php
-define('BASEPATH', 'path/to/codeigniter/system/'); // with ending-slash (remember)
+define('BASEPATH', 'path/to/codeigniter/system/'); // with ending-slash (remember pls)
 
 $ci3db =& anovsiradj\CI3DataBase::init();
 
 // You can direcly using codeigniter database-config (eg: /codeigniter/application/config/database.php)
 $ci3db->set_config_file('path/to/config/database.php');
 
-// or: it's like db(id, config-connection)
+// or: it's like db(id, manual-connection)
 $ci3db->set_config('db-server-5', array(
 	...
 	'host' => 'localhost',
@@ -27,3 +27,11 @@ $db =& $ci3db::db();
 // or
 $db =& anovsiradj\CI3DataBase::db();
 ```
+
+### TODO
+
+- Accept DSN config and parse it.
+
+- dbutil()
+
+- dbforge()
