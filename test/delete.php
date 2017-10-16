@@ -1,15 +1,24 @@
-<?php
-require 'vendor/autoload.php';
-require 'my-error-handle.php';
+<?php # php test/delete.php
 
-define('BASEPATH', realpath('vendor/codeigniter/framework/system') . DIRECTORY_SEPARATOR);
+require 'connect.php';
 
-$ci3db =& anovsiradj\CI3DataBase::init();
-$ci3db->set_config_file('my-config-database.php');
+$ids = array('foobar', 'loremipsum');
+$q = array();
 
-$db =& $ci3db::db();
+foreach ($ids as $id) {
+	$q[$id] = $db->query("DELETE FROM t WHERE k = '{$db->escape_str($id)}'");
+}
 
-$db->query('DELETE FROM t WHERE k = "foobar"');
-$db->query('DELETE FROM t WHERE k = "loremipsum"');
+$table = 't';
+$key = 'k';
+$ci3db = anovsiradj\CI3DataBase::init();
+$db_current = $ci3db->get_config('db_current');
+$db_config = $ci3db->get_config('db_config');
+if ($db_config[$db_current]['dbdriver'] === 'ibase') {
+	$table = strtoupper($table);
+	$key = strtoupper($key);
+}
 
-$db->delete('t', array('k' => 'key'));
+$q['qb'] = $db->delete($table, array($key => 'key'));
+
+var_dump($q);

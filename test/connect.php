@@ -1,10 +1,17 @@
-<?php
+<?php # php test/connect.php
+
 require 'vendor/autoload.php';
 require 'my-error-handle.php';
 
-define('BASEPATH', realpath('vendor/codeigniter/framework/system') . DIRECTORY_SEPARATOR);
+// define('BASEPATH', 'vendor/codeigniter/framework/system/'); // relative
+define('BASEPATH', realpath('vendor/codeigniter/framework/system') . DIRECTORY_SEPARATOR); // absolute
 
-$ci3db =& anovsiradj\CI3DataBase::init();
-$ci3db->set_config_file('my-config-database.php');
+anovsiradj\CI3DataBase::init()->set_db_config_file('my-config-database.php');
 
-$db =& $ci3db::db();
+/**
+* mysql-1 or firebird-1 (default is first index: mysql-1)
+* 
+* @see my-config-database.php
+* 
+*/
+$db =& anovsiradj\CI3DataBase::db();

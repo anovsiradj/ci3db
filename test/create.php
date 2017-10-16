@@ -1,18 +1,26 @@
-<?php
-require 'vendor/autoload.php';
-require 'my-error-handle.php';
+<?php # php test/create.php
 
-define('BASEPATH', realpath('vendor/codeigniter/framework/system') . DIRECTORY_SEPARATOR);
+require 'connect.php';
 
-$ci3db =& anovsiradj\CI3DataBase::init();
-$ci3db->set_config_file('my-config-database.php');
+$ids = array('foobar', 'loremipsum');
+$q = array();
 
-$db =& $ci3db::db();
+foreach ($ids as $id) {
+	$q[$id] = $db->query("INSERT INTO t (k,v) VALUES('{$db->escape_str($id)}', '{$id} create sql')");
+}
 
-$db->query('INSERT INTO t (k,v) VALUES("foobar", "foo and bar is common example for naming variable")');
-$db->query('INSERT INTO t (k,v) VALUES("loremipsum", "lorem ipsum  is common example for dummy data")');
+$table = 't';
+$key = 'k';
+$value = 'v';
+$ci3db = anovsiradj\CI3DataBase::init();
+$db_current = $ci3db->get_config('db_current');
+$db_config = $ci3db->get_config('db_config');
+if ($db_config[$db_current]['dbdriver'] === 'ibase') {
+	$table = strtoupper($table);
+	$key = strtoupper($key);
+	$value = strtoupper($value);
+}
 
-$db->insert('t', array(
-	'k' => 'key',
-	'v' => 'value'
-));
+$q['qb'] = $db->insert($table, array($key => 'key', $value => 'value'));
+
+var_dump($q);

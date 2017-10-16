@@ -1,22 +1,47 @@
 <?php
-require 'vendor/autoload.php';
-require 'my-error-handle.php';
+require 'connect.php';
 
-define('BASEPATH', realpath('vendor/codeigniter/framework/system') . DIRECTORY_SEPARATOR);
+// =========================================
 
-$ci3db =& anovsiradj\CI3DataBase::init();
-$ci3db->set_config_file('my-config-database.php');
+$q1a = $db->query('SELECT * FROM t');
+foreach ($q1a->result() as $data) {
+	print_r($data);
+}
 
-$db =& $ci3db::db();
+$q1b = $db->query('SELECT * FROM t');
+foreach ($q1b->result_array() as $data) {
+	print_r($data);
+}
 
-$db->query('SELECT * FROM t')->result();
-$db->query('SELECT * FROM t')->result_array();
+// =========================================
 
-$db->query('SELECT * FROM t')->row();
-$db->query('SELECT * FROM t')->row_array();
+print_r($db->query('SELECT * FROM t')->row());
 
-$db->get('t')->result();
-$db->get('t')->result_array();
+print_r($db->query('SELECT * FROM t')->row_array());
 
-$db->get('t')->row();
-$db->get('t')->row_array();
+// =========================================
+// =========================================
+
+$table = 't';
+$ci3db = anovsiradj\CI3DataBase::init();
+$db_current = $ci3db->get_config('db_current');
+$db_config = $ci3db->get_config('db_config');
+if ($db_config[$db_current]['dbdriver'] === 'ibase') $table = strtoupper($table);
+
+// =========================================
+// =========================================
+
+$qb1a = $db->from($table)->get();
+foreach ($qb1a->result() as $data) {
+	print_r($data);
+}
+
+$qb1b = $db->from($table)->get();
+foreach ($qb1b->result_array() as $data) {
+	print_r($data);
+}
+
+// =========================================
+
+print_r($db->get($table)->row());
+print_r($db->get($table)->row_array());
