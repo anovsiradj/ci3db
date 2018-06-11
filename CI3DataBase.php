@@ -4,208 +4,192 @@ use Exception, stdClass;
 
 class CI3DataBase
 {
-	const VERSION = '0.0.2-alpha.1';
-	protected static $self_instance;
+  const VERSION = '0.3.0';
+  protected static $self_instance;
 
-	protected $db_instance = array();
-	// protected $dbutil_instance = array();
-	// protected $dbforge_instance = array();
+  protected $db_instance = array();
+  // protected $dbutil_instance = array();
+  // protected $dbforge_instance = array();
 
-	protected $db_config = array();
-	// protected $dbutil_config = array();
-	// protected $dbforge_config = array();
+  protected $db_config = array();
+  // protected $dbutil_config = array();
+  // protected $dbforge_config = array();
 
-	protected $db_default = null;
-	// protected $dbutil_default;
-	// protected $dbforge_default;
+  protected $db_default = null;
+  protected $db_current = null;
 
-	protected $db_current = null;
-	// protected $dbutil_current;
-	// protected $dbforge_current;
+  protected $BASEPATH;
 
-	// protected $ci3_query_builder;
+  protected function __construct()
+  {
+    if (defined('BASEPATH')) {
+      $this->BASEPATH = rtrim(BASEPATH, '/\\');
+      $cwd = dirname(__FILE__);
+      require $cwd . '/files/bootstrap.php';
+      require $cwd . '/files/function.php';
+    } else {
+      throw new Exception('Constant "BASEPATH" (CI3 system path) is not defined.');
+    }
+  }
 
-	protected function __construct()
-	{
-		if (defined('BASEPATH')) {
-			require 'files/bootstrap.php';
-			require 'files/function.php';
-		} else {
-			throw new Exception('Constant "BASEPATH" (CI3 system path) is not defined.');
-		}
-	}
+  public static function &init()
+  {
+    if (isset(static::$self_instance) === false) static::$self_instance = new static;
+    return static::$self_instance;
+  }
 
-	public static function &init()
-	{
-		if (isset(static::$self_instance) === false) {
-			static::$self_instance = new self;
-		}
-		return static::$self_instance;
-	}
+  public function set_config($k, $v)
+  {
+    if (property_exists($this, $k)) {
+      $this->{$k} = $v;
+    } else {
+      throw new Exception(sprintf('Cannot set config, (%s) variable is not defined', $k));
+    }
 
-	public function set_config($k, $v)
-	{
-		if (property_exists($this, $k)) {
-			$this->{$k} = $v;
-		} else {
-			throw new Exception(sprintf('Cannot set config, (%s) variable is not defined', $k));
-		}
+    return $this;
+  }
+  public function get_config($k)
+  {
+    if (property_exists($this, $k)) return $this->{$k};
+    else {
+      throw new Exception(sprintf('[%s]: Cannot get config, variable is not defined (%s)', __CLASS__, $k));
+    }
+  }
 
-		return $this;
-	}
-	public function get_config($k)
-	{
-		if (property_exists($this, $k)) {
-			return $this->{$k};
-		} else {
-			throw new Exception(sprintf('[%s]: Cannot get config, variable is not defined (%s)', __CLASS__, $k));
-		}
-	}
+  public function set_db_config_file($filepath)
+  {
+    $config = require $filepath;
 
-	public function set_db_config_file($filepath)
-	{
-		$config = require $filepath;
+    foreach ($config as $group => $db) {
+      if ($this->db_default === null) $this->db_default = $group;
 
-		$group_default = null;
-		foreach ($config as $group => $db) {
-			if ($group_default === null) $group_default = $group;
+      $this->set_db_config($group, $db);
+    }
 
-			$this->set_db_config($group, $db);
-			// foreach ($db as $k => $v) $this->set_db_config($group, $k, $v);
-		}
+    // die();
 
-		if ($this->db_default === null) $this->db_default = $group_default;
+    // if (!isset($db) || !is_array($db)) $db = array();
 
-		// die();
+    // $group = $active_group;
 
-		// if (!isset($db) || !is_array($db)) $db = array();
+    // if (count($db) === 0) throw new Exception('No database connection settings were found in the database-config.');
+    // if (empty($active_group)) throw new Exception('You have not specified a database connection group via $active_group in your database-config.');
+    // if (!isset($db[$group])) throw new Exception('You have specified an invalid database connection group (' . $group . ') in your database-config.');
 
-		// $group = $active_group;
+    // foreach ($db as $k => $v) $this->set_db_config($k, $v);
 
-		// if (count($db) === 0) throw new Exception('No database connection settings were found in the database-config.');
-		// if (empty($active_group)) throw new Exception('You have not specified a database connection group via $active_group in your database-config.');
-		// if (!isset($db[$group])) throw new Exception('You have specified an invalid database connection group (' . $group . ') in your database-config.');
+    // if (!isset($this->db_default)) $this->db_default = $active_group;
+    // if (!isset($this->db_current)) $this->db_current = $active_group;
+    return $this;
+  }
 
-		// foreach ($db as $k => $v) $this->set_db_config($k, $v);
+  public function set_db_config($group, $config_or_key, $value = null)
+  {
+    if (is_array($config_or_key)) {
+      if (isset($this->db_config[$group]) === false) {
+        $this->db_config[$group] = array();
+      }
 
-		// if (!isset($this->db_default)) $this->db_default = $active_group;
-		// if (!isset($this->db_current)) $this->db_current = $active_group;
-		return $this;
-	}
+      // dont override array
+      foreach ($config_or_key as $k => $v) {
+        $this->db_config[$group][$k] = $v;
+      }
+    } else {
+      $this->db_config[$group][$config_or_key] = $value;
+    }
 
-	public function set_db_config($group, $config_or_key, $value = null)
-	{
-		if (is_array($config_or_key)) {
-			if (isset($this->db_config[$group]) === false) {
-				$this->db_config[$group] = array();
-			}
+    if ($this->db_default === null) $this->db_default = $group;
 
-			// dont override array
-			foreach ($config_or_key as $k => $v) {
-				$this->db_config[$group][$k] = $v;
-			}
-		} else {
-			$this->db_config[$group][$config_or_key] = $value;
-		}
+    return $this;
+  }
 
-		if ($this->db_default === null) $this->db_default = $group;
+  public function get_db_config($group, $key = null)
+  {
+    if ($key === null) {
+      if (isset($this->db_config[$group])) return $this->db_config[$group];
+    } else {
+      if (isset($this->db_config[$group]) && isset($this->db_config[$group][$key])) return $this->db_config[$group][$key];
+    }
+    return null;
+  }
 
-		return $this;
-	}
+  public static function &db($group = null)
+  {
+    if ($group === null) $group = static::init()->get_config('db_default');
 
-	public function get_db_config($group, $key = null)
-	{
-		if ($key === null) {
-			if (isset($this->db_config[$group])) {
-				return $this->db_config[$group];
-			}
-		} else {
-			if (isset($this->db_config[$group]) && isset($this->db_config[$group][$key])) {
-				return $this->db_config[$group][$key];
-			}
-		}
-		return null;
-	}
+    if ($group === null) throw new Exception('No database connection settings were found in the database config.');
 
-	public static function &db($group = null)
-	{
-		if ($group === null) {
-			$group = static::init()->get_config('db_default');
-		}
+    return static::init()->db_init($group);
+  }
 
-		if ($group === null) throw new Exception('No database connection settings were found in the database config.');
+  /**
+  * CI3 DB() clone.
+  * 
+  * @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/database/DB.php - DB()
+  * @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/core/Loader.php - CI_Loader:database()
+  * 
+  */
+  protected function &db_init($group)
+  {
+    $this->db_current = $group;
 
-		return static::init()->db_init($group);
-	}
+    // if (empty($group)) $group = static::$self_instance->db_default;
+    // if (!isset($this->db_config[$group])) throw new Exception('You have specified an invalid database connection group (' . $group . ') in your database-config.');
+    if (isset($this->db_instance[$group])) return $this->db_instance[$group];
 
-	/**
-	* DB() function clone.
-	* 
-	* @see system/database/DB.php - DB()
-	* called by system/core/Loader.php - CI_Loader:database()
-	* 
-	*/
-	protected function &db_init($group)
-	{
-		$this->db_current = $group;
+    $params =& $this->db_config[$group];
 
-		// if (empty($group)) $group = static::$self_instance->db_default;
-		// if (!isset($this->db_config[$group])) throw new Exception('You have specified an invalid database connection group (' . $group . ') in your database-config.');
-		if (isset($this->db_instance[$group])) return $this->db_instance[$group];
+    // Load the DB driver
+    $driver_file = $this->BASEPATH.'/database/drivers/'.$params['dbdriver'].'/'.$params['dbdriver'].'_driver.php';
+    if (file_exists($driver_file) === false) {
+      throw new Exception(sprintf('Invalid DB driver (%s)', $params['dbdriver']));
+    }
+    require_once($driver_file);
 
-		$params =& $this->db_config[$group];
+    // Instantiate the DB adapter
+    $driver = 'CI_DB_'.$params['dbdriver'].'_driver';
+    $this->db_instance[$group] = new $driver($params);
 
-		// Load the DB driver
-		$driver_file = BASEPATH.'database/drivers/'.$params['dbdriver'].'/'.$params['dbdriver'].'_driver.php';
-		if (file_exists($driver_file) === false) {
-			throw new Exception(sprintf('Invalid DB driver (%s)', $params['dbdriver']));
-		}
-		require_once($driver_file);
+    // Check for a subdriver
+    if ( ! empty($DB->subdriver))
+    {
+      $driver_file = $this->BASEPATH.'/database/drivers/'.$DB->dbdriver.'/subdrivers/'.$DB->dbdriver.'_'.$DB->subdriver.'_driver.php';
 
-		// Instantiate the DB adapter
-		$driver = 'CI_DB_'.$params['dbdriver'].'_driver';
-		$this->db_instance[$group] = new $driver($params);
+      if (file_exists($driver_file))
+      {
+        require_once($driver_file);
+        $driver = 'CI_DB_'.$DB->dbdriver.'_'.$DB->subdriver.'_driver';
+        $this->db_instance[$group] = new $driver($params);
+      }
+    }
 
-		// Check for a subdriver
-		if ( ! empty($DB->subdriver))
-		{
-			$driver_file = BASEPATH.'database/drivers/'.$DB->dbdriver.'/subdrivers/'.$DB->dbdriver.'_'.$DB->subdriver.'_driver.php';
+    $this->db_instance[$group]->initialize();
+    return $this->db_instance[$group];
+  }
 
-			if (file_exists($driver_file))
-			{
-				require_once($driver_file);
-				$driver = 'CI_DB_'.$DB->dbdriver.'_'.$DB->subdriver.'_driver';
-				$this->db_instance[$group] = new $driver($params);
-			}
-		}
+  /**
+  * Todo(?)
+  * @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/core/Loader.php - CI_Loader:dbutil()
+  * 
+  */
+  public static function &dbutil($db = NULL, $return = FALSE)
+  {
+    static::init();
 
-		$this->db_instance[$group]->initialize();
-		return $this->db_instance[$group];
-	}
+    $class = new stdClass();
+    return $class;
+  }
 
-	/**
-	* Todo.
-	* @see system/core/Loader.php - CI_Loader:dbutil()
-	* 
-	*/
-	public static function &dbutil($db = NULL, $return = FALSE)
-	{
-		static::init();
+  /**
+  * Todo(?)
+  * @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/core/Loader.php - CI_Loader:dbforge()
+  * 
+  */
+  public static function &dbforge($db = NULL, $return = FALSE)
+  {
+    static::init();
 
-		$class = new stdClass();
-		return $class;
-	}
-
-	/**
-	* Todo.
-	* @see system/core/Loader.php - CI_Loader:dbforge()
-	* 
-	*/
-	public static function &dbforge($db = NULL, $return = FALSE)
-	{
-		static::init();
-
-		$class = new stdClass();
-		return $class;
-	}
+    $class = new stdClass();
+    return $class;
+  }
 }

@@ -1,5 +1,4 @@
-/test/	export-ignore
+/tests/	export-ignore
+/.editorconfig export-ignore
 /.gitattributes	export-ignore
 /.gitignore	export-ignore
-/my-config-database.php	export-ignore
-/my-error-handle.php	export-ignore

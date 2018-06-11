@@ -6,14 +6,16 @@ that need to be initialized before this file is loaded.
 So, I am using the CI3DataBase class itself to load file(s).
 */
 
-require BASEPATH . 'database/DB_driver.php';
-require BASEPATH . 'database/DB_query_builder.php';
-
 /**
 * to satisfy only
 * 
 */
-if (!defined('APPPATH')) define('APPPATH', true);
+if (defined('APPPATH') === false) define('APPPATH', true);
+
+$BASEPATH = rtrim(BASEPATH, '/\\');
+
+require $BASEPATH . '/database/DB_driver.php';
+require $BASEPATH . '/database/DB_query_builder.php';
 
 /**
 * CI3 created this class on runtime

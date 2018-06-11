@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8"/>
+	<title>CI3DB</title>
+</head>
+<body>
+	<div id="attention-please"></div>
+	<script src="//anovsiradj.github.io/readme5/readme5.js?ci3db"></script>
+	<script>
+		var source = ['README.md?_=_'];
+		if (/localhost/.test(location.host)) source.push(Date.now());
+		(new Readme5('attention-please')).init(source.join(''));
+	</script>
+</body>
+</html>

@@ -11,6 +11,7 @@ if (function_exists('log_message') === false) {
 * Required.
 * If you wanted to use default remove_invisible_characters() function,
 * you can load system/core/Common.php
+* OR you can use your own function.
 * 
 * example: require BASEPATH . 'core/Common.php';
 * 
@@ -26,7 +27,7 @@ if (function_exists('remove_invisible_characters') === false) {
 * 
 * To load fake CI3 classes
 * 
-* @see ../class/
+* @see /../class/
 * 
 */
 if (function_exists('load_class')) {
@@ -39,7 +40,7 @@ if (function_exists('load_class')) {
 
 		if (isset($instances[$instance]) === false) {
 
-			// basically, this is to trigger php to run autoloader to load/register class if it not exist
+			// basically, this is used to trigger php to run autoloader|load/register class if it not exists
 			class_exists($instance, true);
 
 			$instances[$instance] = &$instance::init();
