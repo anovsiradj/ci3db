@@ -1,6 +1,8 @@
-<?php # php test/update.php
+<?php # php tests/update.php
 
-require 'connect.php';
+$cwd = dirname(__FILE__);
+
+require $cwd . '/connect.php';
 
 // use query builder
 $qb = true;
@@ -12,7 +14,6 @@ $q = array();
 $table = 't';
 $key = 'k';
 $value = 'v';
-$ci3db = anovsiradj\CI3DataBase::init();
 $db_current = $ci3db->get_config('db_current');
 $db_config = $ci3db->get_config('db_config');
 if ($db_config[$db_current]['dbdriver'] === 'ibase') {
