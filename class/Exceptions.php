@@ -7,7 +7,6 @@
 */
 
 namespace anovsiradj\CI3DB;
-use Exception;
 
 class Exceptions
 {
@@ -29,17 +28,14 @@ class Exceptions
   protected function __default()
   {
     $args = func_get_args();
-    $args[0] = '@' . $args[0] . '():'; // error caller identifier
+    $msgs = '[CI3DB/Exceptions:' . array_shift($args) .'] ';
 
-    $msgs = '';
     foreach ($args as $arg) {
-      if (is_array($arg)) {
-        $msgs .= implode(PHP_EOL, $arg) . PHP_EOL;
-      } else {
-        $msgs .= $arg . PHP_EOL;
-      }
+      if (is_array($arg)) $msgs .= implode(PHP_EOL, $arg) . PHP_EOL;
+      elseif (is_string($arg)) $msgs .= $arg . '.' . PHP_EOL;
     }
-    throw new Exception($msgs);
+
+    throw new \Exception($msgs);
   }
 
   public function __call($fn, $args)

@@ -7,18 +7,19 @@ So, I am using the CI3DataBase class itself to load file(s).
 */
 
 /**
-* to satisfy only
+* 
+* define APPPATH to satisfy only
 * 
 */
-if (defined('APPPATH') === false) define('APPPATH', true);
+if (!defined('APPPATH')) define('APPPATH', '');
 
-$BASEPATH = rtrim(BASEPATH, '/\\');
-
-require $BASEPATH . '/database/DB_driver.php';
-require $BASEPATH . '/database/DB_query_builder.php';
+require BASEPATH . 'database/DB_driver.php';
+require BASEPATH . 'database/DB_query_builder.php';
 
 /**
-* CI3 created this class on runtime
+* CodeIgniter3 created CI_DB on runtime
+* 
+* @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/database/DB.php DB()
 * 
 */
 class CI_DB extends CI_DB_query_builder {}

@@ -1,19 +1,18 @@
 <?php
 namespace anovsiradj;
-use Exception, stdClass;
 
 class CI3DataBase
 {
-	const VERSION = '0.3.0';
+	const VERSION = '0.4.0';
 	protected static $self_instance;
 
 	protected $db_instance = array();
-	// protected $dbutil_instance = array();
-	// protected $dbforge_instance = array();
+	protected $dbutil_instance = array();
+	protected $dbforge_instance = array();
 
 	protected $db_config = array();
-	// protected $dbutil_config = array();
-	// protected $dbforge_config = array();
+	protected $dbutil_config = array();
+	protected $dbforge_config = array();
 
 	protected $db_default = null;
 	protected $db_current = null;
@@ -23,12 +22,11 @@ class CI3DataBase
 	protected function __construct()
 	{
 		if (defined('BASEPATH')) {
-			$this->BASEPATH = rtrim(BASEPATH, '/\\');
-			$cwd = dirname(__FILE__);
-			require $cwd . '/files/bootstrap.php';
-			require $cwd . '/files/function.php';
+			$this->BASEPATH = BASEPATH;
+			require __DIR__ . '/files/bootstrap.php';
+			require __DIR__ . '/files/function.php';
 		} else {
-			throw new Exception('Constant "BASEPATH" (CI3 system path) is not defined.');
+			throw new \Exception('[CI3DB] Constant "BASEPATH" is required by CodeIgniter3');
 		}
 	}
 
@@ -139,9 +137,11 @@ class CI3DataBase
 
 	public static function &db($group = null)
 	{
-		if ($group === null) $group = static::init()->get_config('db_default');
+		// no group? use default.
+		if ($group === null) $group = static::init()->db_default;
 
-		if ($group === null) throw new Exception('No database connection settings were found in the database config.');
+		// still no group? bye!
+		if ($group === null) throw new \Exception('[CI3DB] No database connection settings were found in the database config.');
 
 		return static::init()->db_init($group);
 	}
@@ -149,8 +149,8 @@ class CI3DataBase
 	/**
 	* CI3 DB() clone.
 	* 
-	* @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/database/DB.php - DB()
-	* @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/core/Loader.php - CI_Loader:database()
+	* @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/database/DB.php DB()
+	* @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/core/Loader.php CI_Loader:database()
 	* 
 	*/
 	protected function &db_init($group)

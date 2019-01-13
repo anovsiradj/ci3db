@@ -17,12 +17,11 @@ require 'path/to/vendor/autoload.php';
 define('BASEPATH', 'path/to/vendor/codeigniter/framework/system/'); // relative
 define('BASEPATH', realpath('path/to/vendor/codeigniter/framework/system') . DIRECTORY_SEPARATOR); // absolute
 
-// Initialize
 $ci3db =& anovsiradj\CI3DataBase::init();
 
-$ci3db->set_config_file('path/to/config/database.php');
+$ci3db->set_db_config_file('path/to/config/database.php');
 // or
-$ci3db->set_config('db-server-5', array(
+$ci3db->set_db_config('db-server-5', array(
 	...
 	'host' => 'localhost',
 	'user' => 'root',
@@ -42,45 +41,28 @@ $db =& anovsiradj\CI3DataBase::db('db-server-5');
 
 ### Development
 
-This library is tested on `PHP7`. Probably work on `PHP5`.
+tested on both `5.6+` and `7.0+`.
 
-This library is tested with `MySQL` and `FirebirdSQL`.
+probably work on `5.4.8+` (see https://github.com/bcit-ci/CodeIgniter#server-requirements).
 
-```bash
-git clone ...THIS...
-cd ci3db
-
-# install
-composer install --prefer-dist
-
-# run test `php tests/*.php`
-php tests/connect.php
-php tests/create.php
-php tests/read.php
-php tests/update.php
-php tests/read.php
-php tests/delete.php
-```
-
-Database Structure
-
-- Create database with name `ci3db_test`.
-- Create table with name `t`.
-- Create column `k` type `varchar(100)` and column `v` type `text`.
-- Set column `k` as `Primary Key`.
+tested with `MySQL` and `FirebirdSQL`.
 
 ### Caveats
 
-- `dbutil()` not yet available.
-- `dbforge()` not yet available.
-- DB Cache is not supported.
+`dbutil()` is not supported.
+
+`dbforge()` is not supported.
+
+DB Cache is not supported.
+
+`DSN` string is not yet available. you have to use array.
 
 ### Todo(s)
 
 - Test driver `PDO`
-- Test `SQLite`
-- Accept `DSN` config and parse it.
+- Test `SQLite3`
+- `DSN` support. _ughh!_
 
 # License
 
-[MIT](https://anovsiradj.mit-license.org/2017-2018)
+[MIT](https://anovsiradj.mit-license.org/2017)
