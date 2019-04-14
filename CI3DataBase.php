@@ -3,7 +3,7 @@ namespace anovsiradj;
 
 class CI3DataBase
 {
-	const VERSION = '0.4.0';
+	const VERSION = '1.0.0';
 	protected static $self_instance;
 
 	protected $db_instance = array();
@@ -26,7 +26,7 @@ class CI3DataBase
 			require __DIR__ . '/files/bootstrap.php';
 			require __DIR__ . '/files/function.php';
 		} else {
-			throw new \Exception('[CI3DB] Constant "BASEPATH" is required by CodeIgniter3');
+			throw new \Exception('[CI3DB] Constant "BASEPATH" is required by CodeIgniter3.');
 		}
 	}
 
@@ -54,6 +54,22 @@ class CI3DataBase
 		);
 	}
 
+	public function set_db_default($group = null)
+	{
+		$group = $group ?: $this->db_default;
+
+		if (isset($this->db_config[$group])) {
+			$this->db_default = $group;
+		} else throw new \Exception('[CI3DB] Invalid database connection group ('.$group.').', 1);
+
+		return $this;
+	}
+
+	public function get_db_default()
+	{
+		return $this->db_default;
+	}
+
 	public static function &init()
 	{
 		if (isset(static::$self_instance) === false) static::$self_instance = new static;
@@ -65,7 +81,7 @@ class CI3DataBase
 		if (property_exists($this, $k)) {
 			$this->{$k} = $v;
 		} else {
-			throw new Exception(sprintf('Cannot set config, (%s) variable is not defined', $k));
+			throw new \Exception(sprintf('[CI3DB] Cannot set config, (%s:%s) variable is not defined.', __CLASS__, $k));
 		}
 
 		return $this;
@@ -74,8 +90,38 @@ class CI3DataBase
 	{
 		if (property_exists($this, $k)) return $this->{$k};
 		else {
-			throw new Exception(sprintf('[%s]: Cannot get config, variable is not defined (%s)', __CLASS__, $k));
+			throw new \Exception(sprintf('[CI3DB] Cannot get config, variable is not defined (%s:%s)', __CLASS__, $k));
 		}
+	}
+
+
+	public function set_db_config_dsn($group, $params)
+	{
+		// create group if not exists
+		if (isset($this->db_config[$group]) === false) $this->db_config[$group] = array();
+
+		if (is_string($params) === FALSE || ($dsn = @parse_url($params)) === FALSE) {
+			throw new \Exception(sprintf('[CI3DB] Invalid DB Connection String: %s', $params), 1);
+		}
+		$this->db_config[$group]['dbdriver'] = @$dsn['scheme'] ?: '';
+		$this->db_config[$group]['hostname'] = @$dsn['host'] ?: '';
+		$this->db_config[$group]['port'] = @$dsn['port'] ?: '';
+		$this->db_config[$group]['username'] = @$dsn['user'] ?: '';
+		$this->db_config[$group]['password'] = @$dsn['pass'] ?: '';
+		$this->db_config[$group]['database'] = @$dsn['path'] ? (in_array($dsn['path'][0], ['/','\\']) ? substr($dsn['path'], 1) : $dsn['path']) : '';
+
+		// extra?
+		if (isset($dsn['query'])) {
+			parse_str($dsn['query'], $extra);
+			foreach ($extra as $k => $v) {
+				if (is_string($v) && preg_match_all('/^(FALSE|TRUE|NULL)|^[0-9\.]+$/', strtoupper($v)) === 1) {
+					$v = var_export($v, TRUE);
+				}
+				$this->db_config[$group][$k] = $v;
+			}
+		}
+
+		return $this;
 	}
 
 	public function set_db_config_file($filepath)
@@ -88,36 +134,23 @@ class CI3DataBase
 			$this->set_db_config($group, $db);
 		}
 
-		// die();
-
-		// if (!isset($db) || !is_array($db)) $db = array();
-
-		// $group = $active_group;
-
-		// if (count($db) === 0) throw new Exception('No database connection settings were found in the database-config.');
-		// if (empty($active_group)) throw new Exception('You have not specified a database connection group via $active_group in your database-config.');
-		// if (!isset($db[$group])) throw new Exception('You have specified an invalid database connection group (' . $group . ') in your database-config.');
-
-		// foreach ($db as $k => $v) $this->set_db_config($k, $v);
-
-		// if (!isset($this->db_default)) $this->db_default = $active_group;
-		// if (!isset($this->db_current)) $this->db_current = $active_group;
 		return $this;
 	}
 
-	public function set_db_config($group, $config_or_key, $value = null)
+	public function set_db_config($group, $db_dsn_key, $value = null)
 	{
-		if (is_array($config_or_key)) {
-			if (isset($this->db_config[$group]) === false) {
-				$this->db_config[$group] = array();
-			}
+		// create group if not exists
+		if (isset($this->db_config[$group]) === false) $this->db_config[$group] = array();
 
-			// dont override array
-			foreach ($config_or_key as $k => $v) {
+		if ($value === null && is_string($db_dsn_key)) {
+			$this->set_db_config_dsn($group, $db_dsn_key);
+
+		} elseif (is_array($db_dsn_key)) {
+			foreach ($db_dsn_key as $k => $v) {
 				$this->db_config[$group][$k] = $v;
 			}
 		} else {
-			$this->db_config[$group][$config_or_key] = $value;
+			$this->db_config[$group][$db_dsn_key] = $value;
 		}
 
 		if ($this->db_default === null) $this->db_default = $group;
@@ -137,13 +170,9 @@ class CI3DataBase
 
 	public static function &db($group = null)
 	{
-		// no group? use default.
-		if ($group === null) $group = static::init()->db_default;
+		static::init()->set_db_default($group);
 
-		// still no group? bye!
-		if ($group === null) throw new \Exception('[CI3DB] No database connection settings were found in the database config.');
-
-		return static::init()->db_init($group);
+		return static::init()->db_init(static::init()->get_db_default());
 	}
 
 	/**
@@ -152,13 +181,13 @@ class CI3DataBase
 	* @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/database/DB.php DB()
 	* @see https://github.com/bcit-ci/CodeIgniter/blob/develop/system/core/Loader.php CI_Loader:database()
 	* 
+	* @param string
+	* 
 	*/
 	protected function &db_init($group)
 	{
 		$this->db_current = $group;
 
-		// if (empty($group)) $group = static::$self_instance->db_default;
-		// if (!isset($this->db_config[$group])) throw new Exception('You have specified an invalid database connection group (' . $group . ') in your database-config.');
 		if (isset($this->db_instance[$group])) return $this->db_instance[$group];
 
 		$params =& $this->db_config[$group];
@@ -166,7 +195,7 @@ class CI3DataBase
 		// Load the DB driver
 		$driver_file = $this->BASEPATH.'/database/drivers/'.$params['dbdriver'].'/'.$params['dbdriver'].'_driver.php';
 		if (file_exists($driver_file) === false) {
-			throw new Exception(sprintf('Invalid DB driver (%s)', $params['dbdriver']));
+			throw new \Exception(sprintf('[CI3DB] Invalid DB driver (%s)', $params['dbdriver']));
 		}
 		require_once($driver_file);
 
@@ -200,7 +229,7 @@ class CI3DataBase
 	{
 		static::init();
 
-		$class = new stdClass();
+		$class = new \stdClass();
 		return $class;
 	}
 
@@ -213,7 +242,7 @@ class CI3DataBase
 	{
 		static::init();
 
-		$class = new stdClass();
+		$class = new \stdClass();
 		return $class;
 	}
 }
