@@ -7,6 +7,8 @@
 * There is no `$active_group` option, this library will choose first index (in this example, it was `mysql-1`).
 * `$query_builder` option is always `true`, that was the purpose of this library.
 * 
+* @return array
+* 
 */
 
 return array(
@@ -31,33 +33,20 @@ return array(
 		'failover' => array(),
 		'save_queries' => TRUE
 	),
-	'firebird-1' => array(
-		'dsn' => '',
+	'firebirdsql' => array(
 		'hostname' => 'localhost',
 		'username' => 'sysdba',
 		'password' => 'masterkey',
-		'database' => '/var/www/database/firebird/ci3db_test.fdb',
+		'database' => 'employee',
 		'dbdriver' => 'ibase',
-		'dbprefix' => '',
-		'pconnect' => TRUE,
-		'db_debug' => true,
-		'cache_on' => FALSE,
-		'cachedir' => '',
-		'char_set' => 'utf8',
-		'dbcollat' => 'utf8_general_ci',
-		'swap_pre' => '',
-		'encrypt' => FALSE,
-		'compress' => FALSE,
-		'stricton' => FALSE,
-		'failover' => array(),
-		'save_queries' => TRUE
-	)
+		'pconnect' => true,
+	),
 );
 
 /**
-* default CodeIgniter3 database config file format.
+* example CodeIgniter3 default database config file.
 * 
-* @link https://github.com/bcit-ci/CodeIgniter/blob/develop/application/config/database.php
+* @see https://github.com/bcit-ci/CodeIgniter/blob/develop/application/config/database.php
 * 
 */
 $active_group = 'db-1';
